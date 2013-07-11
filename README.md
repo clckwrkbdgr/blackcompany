@@ -6,8 +6,6 @@ Simple CLI todo-manager
 Use cases
 ---------
 
-Shows some motto or habit (using list of them and switching on start of each month).
-
 Dated tasks:
 Adding, removing, editing tasks. Changing date, changing text.
 Showing current tasks, missed tasks, tasks for next few days, all tasks.
@@ -59,3 +57,10 @@ todo otl [OPTIONS]
 	-r, --random                Prints random task from the list. Excludes --percent.
 	-u, --unsolved              Prints first unsolved sub-task from each top-level task (works only with --random).
 	
+todo motd [OPTIONS]
+	Show a Message of The Day and controls it.
+	-f FILE, --file=FILE            path to the messages file. Plain text, one line is one message.
+	-p, --print                     prints first (top) message.
+	-a, --all                       prints all messages with corresponding IDs, including finished ones.
+	-f, --finish                    finished top message and moves it to the end of the list, popping the next one.
+	-m, --check-month               checks if current date is a start of the month and finish current message if needed.
