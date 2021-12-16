@@ -13,5 +13,6 @@ setuptools.setup(
 		packages=['blackcompany'],
 		install_requires=[
 			'bottle',
+			'gevent',
 			],
 		)
