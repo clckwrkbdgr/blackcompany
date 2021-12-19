@@ -12,6 +12,8 @@ setuptools.setup(
 		version=version,
 		packages=['blackcompany'],
 		install_requires=[
+			'six',
+			'click',
 			'bottle',
 			'gevent',
 			],
