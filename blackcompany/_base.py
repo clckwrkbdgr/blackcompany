@@ -3,11 +3,15 @@ import bottle
 def run(host='0.0.0.0', port=8080, debug=False, server_class=None):
 	""" Runs web server on given host/port.
 	"""
-	bottle.run(host=host, port=port,
-			quiet=not debug, debug=debug,
-			reloader=False,
-			server=server_class,
-			)
+	while True:
+		try:
+			return bottle.run(host=host, port=port,
+				quiet=not debug, debug=debug,
+				reloader=False,
+				server=server_class,
+				)
+		except FileNotFoundError: # pragma: no cover -- Windows sometimes may interrupt bottle internal loop.
+			continue
 
 import click
 
