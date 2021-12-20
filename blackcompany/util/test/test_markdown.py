@@ -5,6 +5,7 @@ try:
 	from pathlib2 import Path
 except ImportError: # pragma: no cover
 	from pathlib import Path
+import json
 from .. import markdown
 
 WITHOUT_YAML = """# heading
@@ -89,3 +90,43 @@ class TestMarkdownFile(fs_unittest.TestCase):
 
 		md = markdown.MarkdownFile(content='no heading')
 		self.assertIsNone(md.get_title())
+
+RESULT_HTML = """\
+<h1>heading</h1>
+<p><strong>List</strong>:</p>
+<ul>
+<li>foo</li>
+<li>bar</li>
+</ul>"""
+
+JINJA_CONTEXT = {
+		'header' : 'heading',
+		'list' : {
+			'name' : 'List',
+			'entries' : ['foo', 'bar'],
+			},
+		}
+
+JINJA_TEMPLATE = """\
+---
+jinja_context_file: /data/context.json
+---
+# {{header}}
+
+**{{list.name}}**:
+
+{% for item in list.entries %}- {{item}}
+{% endfor %}
+"""
+
+class TestMarkdownConversions(fs_unittest.TestCase):
+	def setUp(self):
+		self.setUpPyfakefs(modules_to_reload=[markdown])
+		self.fs.create_dir('/data')
+	def should_convert_markdown_to_html(self):
+		md = markdown.MarkdownFile(content=WITH_YAML)
+		self.assertEqual(md.to_html(), RESULT_HTML)
+	def should_use_jinja_markup_if_requested(self):
+		self.fs.create_file('/data/context.json', contents=json.dumps(JINJA_CONTEXT))
+		md = markdown.MarkdownFile(content=JINJA_TEMPLATE)
+		self.assertEqual(md.to_html(), RESULT_HTML)

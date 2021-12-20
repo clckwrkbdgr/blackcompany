@@ -29,6 +29,7 @@ setuptools.setup(
 			'bottle',
 			'gevent',
 			'markdown',
+			'jinja2',
 			'yaml',
 			] + py_version_requirements,
 		)

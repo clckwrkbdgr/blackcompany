@@ -4,8 +4,33 @@ try:
 except ImportError: # pragma: no cover
 	from pathlib import Path
 import markdown
-import yaml
-from clckwrkbdgr.collections import dotdict
+import markdown.extensions, markdown.preprocessors
+import yaml, json
+import jinja2
+from . import dotdict
+
+class MarkdownJinja(markdown.extensions.Extension):
+	""" Inspired by: https://github.com/qzb/markdown-jinja/ """
+	def __init__(self, params):
+		self.config = {
+				'params': [params, 'Default location of JSON file containing template context']
+				}
+	def extendMarkdown(self, md, *args):
+		md.preprocessors.register(
+				Preprocessor(md.parser, self.getConfigs()), 'jinja', 175,
+				)
+
+class Preprocessor(markdown.preprocessors.Preprocessor):
+	""" Inspired by: https://github.com/qzb/markdown-jinja/ """
+	def __init__(self, md, config):
+		super(Preprocessor, self).__init__(md)
+		self.environment = jinja2.Environment()
+		self.context = config['params']
+	def run(self, lines):
+		text = '\n'.join(lines)
+		template = self.environment.from_string(text)
+		new_text = template.render(self.context)
+		return new_text.splitlines()
 
 class MarkdownFile(object):
 	""" Represents markdown file with optional YAML header (separated by dash line '---').
@@ -67,3 +92,12 @@ class MarkdownFile(object):
 		if self.filename:
 			return self.filename.stem
 		return None
+	def to_html(self):
+		extensions = [
+					'markdown.extensions.tables',
+					'markdown.extensions.fenced_code',
+				]
+		if 'jinja_context_file' in self.header:
+			params = json.loads(Path(self.header['jinja_context_file']).read_text())
+			extensions.append(MarkdownJinja(params))
+		return markdown.markdown(self.text, extensions=extensions)
