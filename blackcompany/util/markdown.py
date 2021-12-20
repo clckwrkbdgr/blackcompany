@@ -49,3 +49,21 @@ class MarkdownFile(object):
 		if not header.endswith('\n'): # pragma: no cover -- no real case.
 			header += '\n'
 		return '---\n' + header + '---\n' + self.text
+
+	def get_title(self):
+		""" Tries to guess title of the markdown document.
+		If there is field .title in the YAML header, uses that.
+		Otherwise tries to find first level-1 heading.
+		If everything fails and filename is defined, uses its basename.
+		"""
+		if 'title' in self.header:
+			return self.header['title']
+		if self.text.startswith('# '):
+			return self.text[2:self.text.find('\n')].strip()
+		top_level_heading = self.text.find('\n# ')
+		if top_level_heading > -1:
+			top_level_heading += 3
+			return self.text[top_level_heading:self.text.find('\n', top_level_heading)].strip()
+		if self.filename:
+			return self.filename.stem
+		return None

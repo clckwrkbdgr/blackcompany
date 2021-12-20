@@ -16,8 +16,8 @@ WITHOUT_YAML = """# heading
 """
 
 WITH_YAML = """---
-key: value
 names: [foo, bar, baz]
+title: Note
 ---
 """ + WITHOUT_YAML
 
@@ -39,23 +39,23 @@ class TestMarkdownFile(fs_unittest.TestCase):
 		md = markdown.MarkdownFile(content=WITH_YAML)
 		self.assertIsNone(md.filename)
 		self.assertEqual(md.header, {
-			'key' : 'value',
+			'title' : 'Note',
 			'names' : ['foo', 'bar', 'baz'],
 			})
-		self.assertEqual(md.header.key, 'value')
+		self.assertEqual(md.header.title, 'Note')
 		self.assertEqual(md.header.names, ['foo', 'bar', 'baz'])
 		self.assertEqual(md.text, WITHOUT_YAML)
 	def should_skip_incomplete_header(self):
-		md = markdown.MarkdownFile(content='---\nkey: value\n' + WITHOUT_YAML)
+		md = markdown.MarkdownFile(content='---\ntitle: Note\n' + WITHOUT_YAML)
 		self.assertIsNone(md.filename)
 		self.assertEqual(md.header, {})
-		self.assertEqual(md.text, '---\nkey: value\n' + WITHOUT_YAML)
+		self.assertEqual(md.text, '---\ntitle: Note\n' + WITHOUT_YAML)
 	def should_load_from_file(self):
 		self.fs.create_file('/data/filename.md', contents=WITH_YAML)
 		md = markdown.MarkdownFile(filename='/data/filename.md')
 		self.assertEqual(md.filename, Path('/data/filename.md'))
 		self.assertEqual(md.header, {
-			'key' : 'value',
+			'title' : 'Note',
 			'names' : ['foo', 'bar', 'baz'],
 			})
 		self.assertEqual(md.text, WITHOUT_YAML)
@@ -71,3 +71,21 @@ class TestMarkdownFile(fs_unittest.TestCase):
 
 		md = markdown.MarkdownFile(content=WITH_YAML)
 		self.assertEqual(str(md), WITH_YAML)
+	def should_guess_title(self):
+		md = markdown.MarkdownFile(content=WITH_YAML)
+		self.assertEqual(md.get_title(), 'Note')
+
+		md = markdown.MarkdownFile(content='---\nkey:value\n---\n' + WITHOUT_YAML)
+		self.assertEqual(md.get_title(), 'heading')
+
+		md = markdown.MarkdownFile(content='some content\n\n' + WITHOUT_YAML)
+		self.assertEqual(md.get_title(), 'heading')
+
+		md = markdown.MarkdownFile(content=WITHOUT_YAML)
+		self.assertEqual(md.get_title(), 'heading')
+
+		md = markdown.MarkdownFile(content='no heading', filename='/data/filename.md')
+		self.assertEqual(md.get_title(), 'filename')
+
+		md = markdown.MarkdownFile(content='no heading')
+		self.assertIsNone(md.get_title())
