@@ -21,6 +21,7 @@ setuptools.setup(
 		version=version,
 		packages=[
 			'blackcompany',
+			'blackcompany.serve',
 			'blackcompany.util',
 			],
 		install_requires=[
