@@ -30,6 +30,7 @@ class StoppableServer(bottle.ServerAdapter):
 		self.srv = make_server(self.host, self.port, handler, server_cls, handler_cls)
 		self.started = True
 		self.srv.serve_forever()
+		self.instances.remove(self)
 	def wait_for_start(self):
 		while not self.started:
 			continue
@@ -38,7 +39,7 @@ class StoppableServer(bottle.ServerAdapter):
 			self.srv.shutdown()
 	@classmethod
 	def instance(cls):
-		assert len(cls.instances) == 1
+		assert len(cls.instances) == 1, cls.instances
 		return cls.instances[0]
 
 def get_free_tcp_port():
