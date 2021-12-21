@@ -17,7 +17,10 @@ WITHOUT_YAML = """# heading
 """
 
 WITH_YAML = """---
-names: [foo, bar, baz]
+names:
+- foo
+- bar
+- baz
 title: Note
 ---
 """ + WITHOUT_YAML
@@ -72,6 +75,10 @@ class TestMarkdownFile(fs_unittest.TestCase):
 
 		md = markdown.MarkdownFile(content=WITH_YAML)
 		self.assertEqual(str(md), WITH_YAML)
+
+		text = '---\nfirst: foo\nsecond: bar\n---\n\nSome text'
+		md = markdown.MarkdownFile(content=text)
+		self.assertEqual(str(md), text)
 	def should_guess_title(self):
 		md = markdown.MarkdownFile(content=WITH_YAML)
 		self.assertEqual(md.get_title(), 'Note')
