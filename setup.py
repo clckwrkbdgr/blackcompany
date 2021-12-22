@@ -31,6 +31,6 @@ setuptools.setup(
 			'gevent',
 			'markdown',
 			'jinja2',
-			'yaml',
+			'pyyaml',
 			] + py_version_requirements,
 		)
