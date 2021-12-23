@@ -2,6 +2,10 @@ import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 import threading
 import pyfakefs.fake_filesystem_unittest as fs_unittest
+try:
+	from pathlib2 import Path
+except: # pragma: no cover
+	from pathlib import Path
 from six.moves import urllib
 import bottle
 
@@ -19,6 +23,12 @@ serve.markdown('/markdown', '/webroot/markdown.md', template_file='/webroot/temp
 serve.plain_text('/raw_markdown', '/webroot/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 
+@serve.mime.Text.Custom.custom()
+def text_custom(route, filename):
+	return '[!CUSTOM: <<<{0}>>>]'.format(Path(filename).read_text())
+
+serve.mime.Text.Custom.serve('/custom_text', '/webroot/custom.txt')
+
 class TestWebService(fs_unittest.TestCase):
 	LOCALHOST = '127.0.0.1'
 	def setUp(self):
@@ -30,6 +40,7 @@ class TestWebService(fs_unittest.TestCase):
 		self.fs.create_file('/webroot/template.html', contents='<html><head><title>{{title}}</title></head><body>{{!content}}</body></html>\n')
 		self.fs.create_file('/webroot/markdown.md', contents='**Hello, world!**\n')
 		self.fs.create_file('/webroot/image.png', contents='PNG...')
+		self.fs.create_file('/webroot/custom.txt', contents='contents of the file')
 
 		self._port = utils.get_free_tcp_port()
 		self._service_thread = threading.Thread(target=_base.run, kwargs=dict(host=self.LOCALHOST, port=self._port, server_class=utils.StoppableServer))
@@ -67,3 +78,7 @@ class TestWebService(fs_unittest.TestCase):
 		data, info = self._get('/image', with_info=True)
 		self.assertEqual(info.get_content_type(), 'image/png')
 		self.assertEqual(data, b'PNG...')
+	def should_serve_mime_type_with_custom_handler(self):
+		data, info = self._get('/custom_text', with_info=True)
+		self.assertEqual(info.get_content_type(), 'text/custom')
+		self.assertEqual(data, b'[!CUSTOM: <<<contents of the file>>>]')
