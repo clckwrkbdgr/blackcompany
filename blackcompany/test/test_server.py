@@ -17,6 +17,7 @@ serve.static_content('/static', '/webroot/static/')
 serve.html('/as_is', '/webroot/as_is.html')
 serve.markdown('/markdown', '/webroot/markdown.md', template_file='/webroot/template.html')
 serve.plain_text('/raw_markdown', '/webroot/markdown.md')
+serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 
 class TestWebService(fs_unittest.TestCase):
 	LOCALHOST = '127.0.0.1'
@@ -28,6 +29,7 @@ class TestWebService(fs_unittest.TestCase):
 		self.fs.create_file('/webroot/as_is.html', contents='<html><body>Hello, world!</body></html>\n')
 		self.fs.create_file('/webroot/template.html', contents='<html><head><title>{{title}}</title></head><body>{{!content}}</body></html>\n')
 		self.fs.create_file('/webroot/markdown.md', contents='**Hello, world!**\n')
+		self.fs.create_file('/webroot/image.png', contents='PNG...')
 
 		self._port = utils.get_free_tcp_port()
 		self._service_thread = threading.Thread(target=_base.run, kwargs=dict(host=self.LOCALHOST, port=self._port, server_class=utils.StoppableServer))
@@ -36,9 +38,11 @@ class TestWebService(fs_unittest.TestCase):
 		utils.StoppableServer.instance().wait_for_start()
 	def _get_url(self, path):
 		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
-	def _get(self, path):
-		req = urllib.request.urlopen(self._get_url(path))
-		data = req.read()
+	def _get(self, path, with_info=False):
+		response = urllib.request.urlopen(self._get_url(path))
+		data = response.read()
+		if with_info:
+			data = data, response.info()
 		return data
 	def tearDown(self):
 		utils.StoppableServer.instance().shutdown()
@@ -56,6 +60,10 @@ class TestWebService(fs_unittest.TestCase):
 	def should_serve_markdown_in_template(self):
 		data = self._get('/markdown')
 		self.assertEqual(data, b'<html><head><title>markdown</title></head><body><p><strong>Hello, world!</strong></p></body></html>\n')
-	def should_plain_text(self):
+	def should_serve_plain_text(self):
 		data = self._get('/raw_markdown')
 		self.assertEqual(data, b'**Hello, world!**\n')
+	def should_serve_arbitrary_mime_type(self):
+		data, info = self._get('/image', with_info=True)
+		self.assertEqual(info.get_content_type(), 'image/png')
+		self.assertEqual(data, b'PNG...')

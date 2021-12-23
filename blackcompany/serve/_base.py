@@ -5,6 +5,30 @@ except: # pragma: no cover
 	from pathlib import Path
 from ..util import markdown as util_markdown
 
+class MimeRoot:
+	def __getattr__(self, mime_type):
+		return MimeType(mime_type)
+
+class MimeType:
+	def __init__(self, mime_type):
+		self.type = mime_type
+	def __getattr__(self, mime_subtype):
+		return MimeSubType(self.type, mime_subtype)
+
+class MimeSubType:
+	def __init__(self, mime_type, mime_subtype):
+		self.type, self.subtype = mime_type, mime_subtype
+	def serve(self, route, filename):
+		content_type = '{0}/{1}'.format(self.type, self.subtype)
+
+		@bottle.route(route)
+		def _actual():
+			bottle.response.content_type = content_type
+			return Path(filename).read_bytes()
+		return _actual
+
+mime = MimeRoot()
+
 def static_content(route, rootdir):
 	""" Serves static content from given rootdir.
 	Route should not include bottle variable:
