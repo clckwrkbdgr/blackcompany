@@ -25,6 +25,7 @@ serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 
 @serve.mime.Text.Custom.custom()
 def text_custom(route, filename):
+	bottle.response.content_type = 'text/plain'
 	return '[!CUSTOM: <<<{0}>>>]'.format(Path(filename).read_text())
 
 serve.mime.Text.Custom.serve('/custom_text', '/webroot/custom.txt')
@@ -80,5 +81,5 @@ class TestWebService(fs_unittest.TestCase):
 		self.assertEqual(data, b'PNG...')
 	def should_serve_mime_type_with_custom_handler(self):
 		data, info = self._get('/custom_text', with_info=True)
-		self.assertEqual(info.get_content_type(), 'text/custom')
+		self.assertEqual(info.get_content_type(), 'text/plain')
 		self.assertEqual(data, b'[!CUSTOM: <<<contents of the file>>>]')

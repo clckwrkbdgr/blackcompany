@@ -21,19 +21,22 @@ class MimeType:
 class MimeSubType:
 	def __init__(self, root, mime_type, mime_subtype):
 		self.root, self.type, self.subtype = root, mime_type, mime_subtype
-	def serve(self, route, filename):
+	def serve(self, route, filename, **params):
 		""" Serves given file on given route as-is with current MIME type. """
 		content_type = '{0}/{1}'.format(self.type, self.subtype)
 		custom_handler = self.root.handlers.get( (self.type, self.subtype) )
 
 		@bottle.route(route)
 		def _actual():
-			bottle.response.content_type = content_type
 			if custom_handler:
-				return custom_handler(route, filename)
+				return custom_handler(route, filename, **params)
+			bottle.response.content_type = content_type
 			return Path(filename).read_bytes()
 	def custom(self):
 		""" Decorator to register custom handler for current MIME type.
+
+		NOTE: MIME type of actual outgoing response will be handled by bottle internally,
+		so it may not be the same as the MIME of the file. E.g. markdown file (text/markdown) may be converted to and returned as text/html.
 
 		@mime.Type.SubType.custom()
 		def my_handler(route, filename):
@@ -42,8 +45,8 @@ class MimeSubType:
 		def _actual(func):
 			self.root.handlers[(self.type, self.subtype)] = func
 			@functools.wraps(func)
-			def _wrapper(route, filename):
-				self.serve(route, filename)
+			def _wrapper(route, filename, **params):
+				self.serve(route, filename, **params)
 			return _wrapper
 		return _actual
 
@@ -66,14 +69,13 @@ def html(route, filename):
 	""" Serves ready HTML file. """
 	return bottle.template(Path(filename).read_text())
 
+@mime.Text.Markdown.custom()
 def markdown(route, filename, template_file):
 	""" Serves markdown file, formatting it into given HTML Jinja template file.
 	Template should contain Jinja tags {{title}} and {{!content}}
 	"""
-	@bottle.route(route)
-	def _actual():
-		md = util_markdown.MarkdownFile(filename=filename)
-		return bottle.template(Path(template_file).read_text(), title=md.get_title(), content=md.to_html())
+	md = util_markdown.MarkdownFile(filename=filename)
+	return bottle.template(Path(template_file).read_text(), title=md.get_title(), content=md.to_html())
 
 @mime.Text.Plain.custom()
 def plain_text(route, filename):
