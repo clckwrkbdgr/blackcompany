@@ -19,10 +19,12 @@ def test_page():
 
 serve.static_content('/static', '/webroot/static/')
 serve.html('/as_is', '/webroot/as_is.html')
-serve.markdown('/markdown', '/webroot/markdown.md', template_file='/webroot/template.html')
-serve.mime.Text.Markdown.serve('/index.md', '/webroot/index.md', template_file='/webroot/template.html')
-serve.plain_text('/raw_markdown', '/webroot/markdown.md')
+serve.markdown('/markdown', '/webroot/markdown/markdown.md', template_file='/webroot/template.html')
+serve.mime.Text.Markdown.serve('/index.md', '/webroot/markdown/index.md', template_file='/webroot/template.html')
+serve.plain_text('/raw_markdown', '/webroot/markdown/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
+serve.mime.Directory.List.serve('/dir', '/webroot/markdown', template_file='/webroot/template-index.html')
+serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html')
 
 @serve.mime.Text.Custom.custom()
 def text_custom(route, filename):
@@ -40,8 +42,12 @@ class TestWebService(fs_unittest.TestCase):
 		self.fs.create_file('/webroot/static/static.txt', contents='Hello, world!\n')
 		self.fs.create_file('/webroot/as_is.html', contents='<html><body>Hello, world!</body></html>\n')
 		self.fs.create_file('/webroot/template.html', contents='<html><head><title>{{title}}</title></head><body>{{!content}}</body></html>\n')
-		self.fs.create_file('/webroot/markdown.md', contents='**Hello, world!**\n')
-		self.fs.create_file('/webroot/index.md', contents='# Index\n')
+		index_content_template = '<ul>\n% for entry in entries:\n<li><a href="{{entry.path}}">{{entry.name}}</a></li>\n% end\n</ul>\n'
+		self.fs.create_file('/webroot/template-index.html', contents='<html><head><title>{{title}}</title></head><body>'+index_content_template+'</body></html>\n')
+		self.fs.create_file('/webroot/template-index-content.html', contents=index_content_template)
+		self.fs.create_dir('/webroot/markdown')
+		self.fs.create_file('/webroot/markdown/markdown.md', contents='**Hello, world!**\n')
+		self.fs.create_file('/webroot/markdown/index.md', contents='# Index\n')
 		self.fs.create_file('/webroot/image.png', contents='PNG...')
 		self.fs.create_file('/webroot/custom.txt', contents='contents of the file')
 
@@ -89,3 +95,9 @@ class TestWebService(fs_unittest.TestCase):
 		data, info = self._get('/custom_text', with_info=True)
 		self.assertEqual(info.get_content_type(), 'text/plain')
 		self.assertEqual(data, b'[!CUSTOM: <<<contents of the file>>>]')
+	def should_serve_directory_list_with_embedded_template(self):
+		data = self._get('/dir')
+		self.assertEqual(data, b'<html><head><title>Index of /webroot/markdown</title></head><body><ul>\n<li><a href="/dir/index.md">index.md</a></li>\n<li><a href="/dir/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
+	def should_serve_directory_list_with_external_template(self):
+		data = self._get('/dir-external')
+		self.assertEqual(data, b'<html><head><title>Index of /webroot/markdown</title></head><body><ul>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
