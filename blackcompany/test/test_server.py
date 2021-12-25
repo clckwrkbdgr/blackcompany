@@ -20,6 +20,7 @@ def test_page():
 serve.static_content('/static', '/webroot/static/')
 serve.html('/as_is', '/webroot/as_is.html')
 serve.markdown('/markdown', '/webroot/markdown.md', template_file='/webroot/template.html')
+serve.mime.Text.Markdown.serve('/index.md', '/webroot/index.md', template_file='/webroot/template.html')
 serve.plain_text('/raw_markdown', '/webroot/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 
@@ -40,6 +41,7 @@ class TestWebService(fs_unittest.TestCase):
 		self.fs.create_file('/webroot/as_is.html', contents='<html><body>Hello, world!</body></html>\n')
 		self.fs.create_file('/webroot/template.html', contents='<html><head><title>{{title}}</title></head><body>{{!content}}</body></html>\n')
 		self.fs.create_file('/webroot/markdown.md', contents='**Hello, world!**\n')
+		self.fs.create_file('/webroot/index.md', contents='# Index\n')
 		self.fs.create_file('/webroot/image.png', contents='PNG...')
 		self.fs.create_file('/webroot/custom.txt', contents='contents of the file')
 
@@ -79,6 +81,10 @@ class TestWebService(fs_unittest.TestCase):
 		data, info = self._get('/image', with_info=True)
 		self.assertEqual(info.get_content_type(), 'image/png')
 		self.assertEqual(data, b'PNG...')
+	def should_serve_mime_type_with_predefined_custom_handler(self):
+		data, info = self._get('/index.md', with_info=True)
+		self.assertEqual(info.get_content_type(), 'text/html')
+		self.assertEqual(data, b'<html><head><title>Index</title></head><body><h1>Index</h1></body></html>\n')
 	def should_serve_mime_type_with_custom_handler(self):
 		data, info = self._get('/custom_text', with_info=True)
 		self.assertEqual(info.get_content_type(), 'text/plain')
