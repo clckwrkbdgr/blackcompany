@@ -1,5 +1,7 @@
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
+import sys
+import functools
 import threading
 import pyfakefs.fake_filesystem_unittest as fs_unittest
 try:
@@ -25,6 +27,15 @@ serve.plain_text('/raw_markdown', '/webroot/markdown/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 serve.mime.Directory.List.serve('/dir', '/webroot/markdown', template_file='/webroot/template-index.html')
 serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html')
+
+def track_user_agent(func):
+	@functools.wraps(func)
+	def _actual(*args, **kwargs):
+		track_user_agent.history.append(bottle.request.get_header('User-Agent'))
+		return func(*args, **kwargs)
+	return _actual
+track_user_agent.history = []
+serve.mime.Text.Plain.serve('/tracker', '/webroot/static/static.txt', decorator=track_user_agent)
 
 @serve.mime.Text.Custom.custom()
 def text_custom(route, filename):
@@ -101,3 +112,8 @@ class TestWebService(fs_unittest.TestCase):
 	def should_serve_directory_list_with_external_template(self):
 		data = self._get('/dir-external')
 		self.assertEqual(data, b'<html><head><title>Index of /webroot/markdown</title></head><body><ul>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
+	def should_call_custom_decorator(self):
+		track_user_agent.history.clear()
+		data = self._get('/tracker')
+		self.assertEqual(data, b'Hello, world!\n')
+		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])

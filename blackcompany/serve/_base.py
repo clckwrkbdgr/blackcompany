@@ -29,10 +29,13 @@ class MimeType:
 class MimeSubType:
 	def __init__(self, root, mime_type, mime_subtype):
 		self.root, self.type, self.subtype = root, mime_type, mime_subtype
-	def serve(self, route, filepath, **params):
+	def serve(self, route, filepath, decorator=None, **params):
 		""" Serves given file on given route as-is with current MIME type.
 		If custom handler is defined for this MIME type, it is called instead,
 		and all arguments are passed to the actual handler function.
+
+		If decorator is not None, it is used to decorate actual bottle handler
+		(should be a callable that takes function and returns a function).
 		"""
 		content_type = '{0}/{1}'.format(self.type, self.subtype)
 		custom_handler = self.root.handlers.get( (self.type, self.subtype) )
@@ -42,7 +45,6 @@ class MimeSubType:
 				route += '/'
 			route += custom_handler.path_param
 
-		@bottle.route(route)
 		def _actual(**bottle_handler_args):
 			if custom_handler:
 				kwargs = {}
@@ -51,6 +53,10 @@ class MimeSubType:
 				return custom_handler(route, filepath, **kwargs)
 			bottle.response.content_type = content_type
 			return Path(filepath).read_bytes()
+
+		if decorator:
+			_actual = decorator(_actual)
+		bottle.route(route)(_actual)
 	def custom(self, path_param=None):
 		""" Decorator to register custom handler for current MIME type.
 		Handler should accept positional arguments: (route, filepath).
