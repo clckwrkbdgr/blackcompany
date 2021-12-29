@@ -26,7 +26,7 @@ serve.mime.Text.Markdown.serve('/index.md', '/webroot/markdown/index.md', templa
 serve.plain_text('/raw_markdown', '/webroot/markdown/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 serve.mime.Directory.List.serve('/dir', '/webroot/markdown', template_file='/webroot/template-index.html')
-serve.mime.Text.Markdown.serve('/dir', '/webroot/markdown', path_param='<filename>', template_file='/webroot/template.html')
+serve.mime.Text.Markdown.serve('/dir', '/webroot/markdown', path_param='filename', template_file='/webroot/template.html')
 serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html', title='Custom title')
 
 def track_user_agent(func):

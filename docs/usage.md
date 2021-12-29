@@ -73,6 +73,13 @@ There is a special predefined pseudo-MIME type `Directory`. It has several subty
 - `Directory.Static` - serve static content from given directory. Uses `bottle.static_file` underneath.
 - `Directory.List` - simple HTML templated index of a directory.
 
+To serve content of some directory with custom MIME handler, define route with argument `path_param`:
+
+```python
+# E.g. /docs/index.md will fetch /home/user/web/docs/index.md and convert it to HTML.
+mime.Text.Markdown.serve('/docs', '/home/user/web/docs', path_param='filename', template_file='/home/user/web/template.html')
+```
+
 See API help for more details.
 
 Extra utils

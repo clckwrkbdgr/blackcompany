@@ -45,16 +45,14 @@ class MimeSubType:
 		content_type = '{0}/{1}'.format(self.type, self.subtype)
 		custom_handler = self.root.handlers.get( (self.type, self.subtype) )
 
+		if not path_param and (custom_handler and custom_handler.path_param):
+			path_param = custom_handler.path_param
 		if path_param:
 			if not route.endswith('/'):
 				route += '/'
 			if path_param.startswith('<') and path_param.endswith('>'):
 				path_param = path_param[1:-1]
 			route += '<{0}>'.format(path_param)
-		elif custom_handler and custom_handler.path_param:
-			if not route.endswith('/'):
-				route += '/'
-			route += custom_handler.path_param
 
 		# Consolidate parameters for closure function
 		# to prevent issues with not defined local variables.
@@ -84,8 +82,9 @@ class MimeSubType:
 		Handler can also accept any number of keyword arguments, which will be passed to it as-is from corresponding serve().
 
 		For parametrized routes pass last part of the path with param via path_param,
-		the actual value will be added to keywords arguments in handler's call,
-		e.g.: route='/web/route' + path_param='<param_name>' => '/web/route/<param_name>', handler(route, filepath, param_name=None, ...)
+		the actual value will be added to filepath argument in handler's call,
+		e.g.: route='/web/route' + path_param='<param_name>' => '/web/route/<param_name>', handler(route, filepath/<param_value>, ...)
+		See more details in documentation for serve().
 
 		NOTE: MIME type of actual outgoing response will be handled by bottle internally,
 		so it may not be the same as the MIME of the file. E.g. markdown file (text/markdown) may be converted to and returned as text/html.
@@ -105,12 +104,14 @@ class MimeSubType:
 mime = MimeRoot()
 
 @mime.Directory.Static.custom(path_param='<filename>')
-def static_content(route, rootdir, filename):
+def static_content(route, rootpath, filename=None):
 	""" Serves static content from given rootdir.
 	Route should not include bottle variable:
 	'/some/route/' to serve '/some/route/<filenames>'
 	"""
-	return bottle.static_file(str(filename), root=str(rootdir))
+	if not filename:
+		rootpath, filename = rootpath.parent, rootpath.name
+	return bottle.static_file(str(filename), root=str(rootpath))
 
 DirectoryListEntry = namedtuple('DirectoryListEntry', 'path name')
 
