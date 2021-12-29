@@ -29,10 +29,15 @@ class MimeType:
 class MimeSubType:
 	def __init__(self, root, mime_type, mime_subtype):
 		self.root, self.type, self.subtype = root, mime_type, mime_subtype
-	def serve(self, route, filepath, decorator=None, **params):
+	def serve(self, route, filepath, decorator=None, path_param=None, **params):
 		""" Serves given file on given route as-is with current MIME type.
 		If custom handler is defined for this MIME type, it is called instead,
 		and all arguments are passed to the actual handler function.
+
+		If path_param is specified (e.g. '<filename>'), route is treated as root
+		for serving sub-entries. Path parameter will be added automatically,
+		as well as actual subpath value will be added to the filepath parameter passed into the handler.
+		Overrides path_param from custom().
 
 		If decorator is not None, it is used to decorate actual bottle handler
 		(should be a callable that takes function and returns a function).
@@ -40,13 +45,28 @@ class MimeSubType:
 		content_type = '{0}/{1}'.format(self.type, self.subtype)
 		custom_handler = self.root.handlers.get( (self.type, self.subtype) )
 
-		if custom_handler and custom_handler.path_param:
+		if path_param:
+			if not route.endswith('/'):
+				route += '/'
+			if path_param.startswith('<') and path_param.endswith('>'):
+				path_param = path_param[1:-1]
+			route += '<{0}>'.format(path_param)
+		elif custom_handler and custom_handler.path_param:
 			if not route.endswith('/'):
 				route += '/'
 			route += custom_handler.path_param
 
+		# Consolidate parameters for closure function
+		# to prevent issues with not defined local variables.
+		context = {
+				'filepath' : filepath,
+				}
 		def _actual(**bottle_handler_args):
+			filepath = context['filepath']
 			if custom_handler:
+				if path_param in bottle_handler_args:
+					filepath = Path(filepath)/bottle_handler_args[path_param]
+					del bottle_handler_args[path_param]
 				kwargs = {}
 				kwargs.update(bottle_handler_args)
 				kwargs.update(params)

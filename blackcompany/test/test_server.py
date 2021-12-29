@@ -26,6 +26,7 @@ serve.mime.Text.Markdown.serve('/index.md', '/webroot/markdown/index.md', templa
 serve.plain_text('/raw_markdown', '/webroot/markdown/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 serve.mime.Directory.List.serve('/dir', '/webroot/markdown', template_file='/webroot/template-index.html')
+serve.mime.Text.Markdown.serve('/dir', '/webroot/markdown', path_param='<filename>', template_file='/webroot/template.html')
 serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html', title='Custom title')
 
 def track_user_agent(func):
@@ -109,6 +110,11 @@ class TestWebService(fs_unittest.TestCase):
 	def should_serve_directory_list_with_embedded_template(self):
 		data = self._get('/dir')
 		self.assertEqual(data, b'<html><head><title>Index of markdown</title></head><body><ul>\n<li><a href="/dir/index.md">index.md</a></li>\n<li><a href="/dir/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
+	def should_serve_directory_content_with_specific_mime_type(self):
+		data = self._get('/dir/index.md')
+		self.assertEqual(data, b'<html><head><title>Index</title></head><body><h1>Index</h1></body></html>\n')
+		data = self._get('/dir/markdown.md')
+		self.assertEqual(data, b'<html><head><title>markdown</title></head><body><p><strong>Hello, world!</strong></p></body></html>\n')
 	def should_serve_directory_list_with_external_template(self):
 		data = self._get('/dir-external')
 		self.assertEqual(data, b'<html><head><title>Custom title</title></head><body><ul>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
