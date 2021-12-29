@@ -26,7 +26,7 @@ serve.mime.Text.Markdown.serve('/index.md', '/webroot/markdown/index.md', templa
 serve.plain_text('/raw_markdown', '/webroot/markdown/markdown.md')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 serve.mime.Directory.List.serve('/dir', '/webroot/markdown', template_file='/webroot/template-index.html')
-serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html')
+serve.mime.Directory.List.serve('/dir-external', '/webroot/markdown', template_file='/webroot/template.html', content_template_file='/webroot/template-index-content.html', title='Custom title')
 
 def track_user_agent(func):
 	@functools.wraps(func)
@@ -108,10 +108,10 @@ class TestWebService(fs_unittest.TestCase):
 		self.assertEqual(data, b'[!CUSTOM: <<<contents of the file>>>]')
 	def should_serve_directory_list_with_embedded_template(self):
 		data = self._get('/dir')
-		self.assertEqual(data, b'<html><head><title>Index of /webroot/markdown</title></head><body><ul>\n<li><a href="/dir/index.md">index.md</a></li>\n<li><a href="/dir/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
+		self.assertEqual(data, b'<html><head><title>Index of markdown</title></head><body><ul>\n<li><a href="/dir/index.md">index.md</a></li>\n<li><a href="/dir/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
 	def should_serve_directory_list_with_external_template(self):
 		data = self._get('/dir-external')
-		self.assertEqual(data, b'<html><head><title>Index of /webroot/markdown</title></head><body><ul>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
+		self.assertEqual(data, b'<html><head><title>Custom title</title></head><body><ul>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')
 	def should_call_custom_decorator(self):
 		track_user_agent.history.clear()
 		data = self._get('/tracker')
