@@ -42,10 +42,14 @@ class MarkdownFile(object):
 	Header and text are available through corresponding fields.
 	If header is a dict (usually it should be), it is turned into dotdict.
 	"""
-	def __init__(self, filename=None, content=None):
+	def __init__(self, filename=None, encoding=None, errors=None, content=None):
+		""" Creates Markdown document either directly from content or from file.
+		If filename is specified and content is not, reads content from the file.
+		Parameters encoding and errors behave like in pathlib.Path.read_text().
+		"""
 		self.filename = Path(filename) if filename is not None else None
 		if self.filename and not content:
-			content = self.filename.read_text()
+			content = self.filename.read_text(encoding=encoding, errors=errors)
 		self.header = {}
 		self.text = content or ''
 		self._parse_content(content or '')
@@ -93,6 +97,10 @@ class MarkdownFile(object):
 			return self.filename.stem
 		return None
 	def to_html(self):
+		""" Converts content to HTML.
+		If 'jinja_context_file' is amongs headers, treats content as Jinja template
+		and uses JSON object from file as parameters for the template.
+		"""
 		extensions = [
 					'markdown.extensions.tables',
 					'markdown.extensions.fenced_code',
