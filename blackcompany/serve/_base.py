@@ -145,11 +145,11 @@ def html(route, filename):
 	return bottle.template(Path(filename).read_text())
 
 @mime.Text.Markdown.custom()
-def markdown(route, filename, template_file):
+def markdown(route, filename, template_file, encoding=None):
 	""" Serves markdown file, formatting it into given HTML Jinja template file.
 	Template should contain Jinja tags {{title}} and {{!content}}
 	"""
-	md = util_markdown.MarkdownFile(filename=filename)
+	md = util_markdown.MarkdownFile(filename=filename, encoding=encoding, errors='replace' if encoding else None)
 	return bottle.template(Path(template_file).read_text(), title=md.get_title(), content=md.to_html())
 
 @mime.Text.Plain.custom()
