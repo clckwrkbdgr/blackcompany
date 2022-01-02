@@ -1,4 +1,5 @@
 import functools
+import socket
 from collections import namedtuple
 import bottle
 try:
@@ -6,6 +7,8 @@ try:
 except: # pragma: no cover
 	from pathlib import Path
 from ..util import markdown as util_markdown
+
+RemoteInfo = namedtuple('RemoteInfo', 'ip name')
 
 class MimeHandler:
 	def __init__(self, handler_func, path_param=None):
@@ -29,7 +32,7 @@ class MimeType:
 class MimeSubType:
 	def __init__(self, root, mime_type, mime_subtype):
 		self.root, self.type, self.subtype = root, mime_type, mime_subtype
-	def serve(self, route, filepath, decorator=None, path_param=None, **params):
+	def serve(self, route, filepath, decorator=None, path_param=None, on_remote_info=None, **params):
 		""" Serves given file on given route as-is with current MIME type.
 		If custom handler is defined for this MIME type, it is called instead,
 		and all arguments are passed to the actual handler function.
@@ -38,6 +41,8 @@ class MimeSubType:
 		for serving sub-entries. Path parameter will be added automatically,
 		as well as actual subpath value will be added to the filepath parameter passed into the handler.
 		Overrides path_param from custom().
+
+		If on_remote_info is not None, it should be a callable accepting RemoteInfo object. It will be called at the beginning of the handler.
 
 		If decorator is not None, it is used to decorate actual bottle handler
 		(should be a callable that takes function and returns a function).
@@ -58,9 +63,19 @@ class MimeSubType:
 		# to prevent issues with not defined local variables.
 		context = {
 				'filepath' : filepath,
+				'on_remote_info' : on_remote_info,
 				}
 		def _actual(**bottle_handler_args):
 			filepath = context['filepath']
+			if context['on_remote_info'] is not None:
+				try:
+					remote_ip = bottle.request.headers.get('HTTP_X_FORWARDED_FOR') or bottle.request.headers.get('HTTP_REMOTE_ADDR') or bottle.request.headers.get('REMOTE_ADDR') or bottle.request.remote_addr
+					remote_name = socket.getnameinfo((remote_ip, 0), 0)[0] if remote_ip else None
+					remote_info = RemoteInfo(ip=remote_ip, name=remote_name)
+					context['on_remote_info'](remote_info)
+				except: # pragma: no cover
+					import traceback
+					traceback.print_exc()
 			if custom_handler:
 				if path_param in bottle_handler_args:
 					filepath = Path(filepath)/bottle_handler_args[path_param]

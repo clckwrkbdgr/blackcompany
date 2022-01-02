@@ -1,6 +1,7 @@
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 import sys
+import socket
 import functools
 import threading
 import pyfakefs.fake_filesystem_unittest as fs_unittest
@@ -38,6 +39,11 @@ def track_user_agent(func):
 track_user_agent.history = []
 serve.mime.Text.Plain.serve('/tracker', '/webroot/static/static.txt', decorator=track_user_agent)
 
+def track_remote_addr(remote_info):
+	track_remote_addr.history.append(remote_info)
+track_remote_addr.history = []
+serve.mime.Text.Plain.serve('/track_ip', '/webroot/static/static.txt', on_remote_info=track_remote_addr)
+
 @serve.mime.Text.Custom.custom()
 def text_custom(route, filename):
 	bottle.response.content_type = 'text/plain'
@@ -72,7 +78,8 @@ class TestWebService(fs_unittest.TestCase):
 	def _get_url(self, path):
 		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
 	def _get(self, path, with_info=False):
-		response = urllib.request.urlopen(self._get_url(path))
+		request = urllib.request.Request(self._get_url(path))
+		response = urllib.request.urlopen(request)
 		data = response.read()
 		if with_info:
 			data = data, response.info()
@@ -126,3 +133,10 @@ class TestWebService(fs_unittest.TestCase):
 		data = self._get('/tracker')
 		self.assertEqual(data, b'Hello, world!\n')
 		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
+	def should_track_remote_info(self):
+		track_remote_addr.history.clear()
+		data = self._get('/track_ip')
+		self.assertEqual(data, b'Hello, world!\n')
+		current_ip = self.LOCALHOST
+		current_name = socket.getnameinfo((current_ip, 0), 0)[0]
+		self.assertEqual(track_remote_addr.history, [serve.RemoteInfo(current_ip, current_name)])
