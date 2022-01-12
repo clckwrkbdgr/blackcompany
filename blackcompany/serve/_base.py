@@ -1,5 +1,4 @@
 import functools
-import socket
 from collections import namedtuple
 import bottle
 try:
@@ -7,8 +6,9 @@ try:
 except: # pragma: no cover
 	from pathlib import Path
 from ..util import markdown as util_markdown
+from ..util import net as netutil
 
-RemoteInfo = namedtuple('RemoteInfo', 'ip name')
+RemoteInfo = netutil.RemoteInfo
 
 class MimeHandler:
 	def __init__(self, handler_func, path_param=None):
@@ -69,9 +69,8 @@ class MimeSubType:
 			filepath = context['filepath']
 			if context['on_remote_info'] is not None:
 				try:
-					remote_ip = bottle.request.headers.get('HTTP_X_FORWARDED_FOR') or bottle.request.headers.get('HTTP_REMOTE_ADDR') or bottle.request.headers.get('REMOTE_ADDR') or bottle.request.remote_addr
-					remote_name = socket.getnameinfo((remote_ip, 0), 0)[0] if remote_ip else None
-					remote_info = RemoteInfo(ip=remote_ip, name=remote_name)
+					remote_addr = bottle.request.headers.get('HTTP_X_FORWARDED_FOR') or bottle.request.headers.get('HTTP_REMOTE_ADDR') or bottle.request.headers.get('REMOTE_ADDR') or bottle.request.remote_addr
+					remote_info = netutil.get_request_remote_info(remote_addr)
 					context['on_remote_info'](remote_info)
 				except: # pragma: no cover
 					import traceback
