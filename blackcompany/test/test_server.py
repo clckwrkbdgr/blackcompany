@@ -17,7 +17,7 @@ from .. import serve
 def test_page():
 	return 'Hello, world!'
 
-serve.mime.Text.Markdown.serve('/index.md', '/webroot/markdown/index.md', template_file='/webroot/template.html')
+serve.mime.Text.Markdown.serve('/index.md', '/webroot/index.md', template_file='/webroot/template.html')
 serve.mime.Image.PNG.serve('/image', '/webroot/image.png')
 
 def track_user_agent(func):
@@ -27,12 +27,12 @@ def track_user_agent(func):
 		return func(*args, **kwargs)
 	return _actual
 track_user_agent.history = []
-serve.mime.Text.Plain.serve('/tracker', '/webroot/static/static.txt', decorator=track_user_agent)
+serve.mime.Text.Plain.serve('/tracker', '/webroot/trackme.txt', decorator=track_user_agent)
 
 def track_remote_addr(remote_info):
 	track_remote_addr.history.append(remote_info)
 track_remote_addr.history = []
-serve.mime.Text.Plain.serve('/track_ip', '/webroot/static/static.txt', on_remote_info=track_remote_addr)
+serve.mime.Text.Plain.serve('/track_ip', '/webroot/trackme.txt', on_remote_info=track_remote_addr)
 
 @serve.mime.Text.Custom.custom()
 def text_custom(route, filename):
@@ -46,16 +46,9 @@ class TestWebService(utils.WebServerTestCase):
 		super(TestWebService, self).setUp()
 		self.setUpPyfakefs(modules_to_reload=[_base, serve])
 		self.fs.create_dir('/webroot')
-		self.fs.create_dir('/webroot/static')
-		self.fs.create_file('/webroot/static/static.txt', contents='Hello, world!\n')
+		self.fs.create_file('/webroot/trackme.txt', contents='Hello, world!\n')
 		self.fs.create_file('/webroot/template.html', contents='<html><head><title>{{title}}</title></head><body>{{!content}}</body></html>\n')
-		index_content_template = '<ul>\n% for entry in entries:\n<li><a href="{{entry.path}}">{{entry.name}}</a></li>\n% end\n</ul>\n'
-		self.fs.create_file('/webroot/template-index.html', contents='<html><head><title>{{title}}</title></head><body>'+index_content_template+'</body></html>\n')
-		self.fs.create_file('/webroot/template-index-content.html', contents=index_content_template)
-		self.fs.create_dir('/webroot/markdown')
-		self.fs.create_file('/webroot/markdown/markdown.md', contents='**Hello, world!**\n')
-		self.fs.create_file('/webroot/markdown/index.md', contents='# Index\n')
-		self.fs.create_file('/webroot/markdown/cp1251.md', contents='Привет, мир\n'.encode('cp1251'))
+		self.fs.create_file('/webroot/index.md', contents='# Index\n')
 		self.fs.create_file('/webroot/image.png', contents='PNG...')
 		self.fs.create_file('/webroot/custom.txt', contents='contents of the file')
 
