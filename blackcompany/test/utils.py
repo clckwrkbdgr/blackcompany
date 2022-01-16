@@ -1,4 +1,8 @@
+import threading
+from six.moves import urllib
 import bottle
+import pyfakefs.fake_filesystem_unittest as fs_unittest
+from .. import _base
 
 class StoppableServer(bottle.ServerAdapter):
 	instances = []
@@ -50,3 +54,23 @@ def get_free_tcp_port():
 	tcp.close()
 	return port
 
+class WebServerTestCase(fs_unittest.TestCase):
+	LOCALHOST = '127.0.0.1'
+	def setUp(self):
+		self._port = get_free_tcp_port()
+		self._service_thread = threading.Thread(target=_base.run, kwargs=dict(host=self.LOCALHOST, port=self._port, server_class=StoppableServer))
+		self._service_thread.daemon = True
+		self._service_thread.start()
+		StoppableServer.instance().wait_for_start()
+	def _get_url(self, path):
+		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
+	def _get(self, path, with_info=False):
+		request = urllib.request.Request(self._get_url(path))
+		response = urllib.request.urlopen(request)
+		data = response.read()
+		if with_info:
+			data = data, response.info()
+		return data
+	def tearDown(self):
+		StoppableServer.instance().shutdown()
+		self._service_thread.join()
