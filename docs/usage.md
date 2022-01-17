@@ -82,6 +82,32 @@ mime.Text.Markdown.serve('/docs', '/home/user/web/docs', path_param='filename', 
 
 See API help for more details.
 
+REST API
+--------
+
+Simple REST API endpoints are defined using `blackcompany.serve.rest.entry()` with handler object that supports methods `get`, `post`, `put`, `delete`.
+
+Example:
+
+```python
+class MyAPI:
+	def get(self):
+		...
+	def put(self, body):
+		...
+	def post(self, body):
+		...
+	def delete(self):
+		...
+
+api_object = MyAPI()
+blackcompany.serve.rest.entry('/api/path', api_object)
+```
+
+Methods that are not implemented in handler object will be ignored when setting up route for the endpoint.
+Object may implement any kind of internal state. Except for four predefined methods, there is no further restriction on method names.
+Body passed to `PUT` and `POST` handlers will be a bytes object.
+
 Extra utils
 -----------
 

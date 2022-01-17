@@ -31,15 +31,16 @@ class Endpoint:
 	"""
 	def __init__(self,
 			route, filepath,
-			custom_handler=None,
+			custom_handler=None, method=None,
 			content_type=None,
 			path_param=None,
 			decorator=None, on_remote_info=None,
 			):
 		self.route = route
-		self.filepath = Path(filepath)
+		self.filepath = Path(filepath) if filepath else None
 		self.content_type = content_type
 		self.custom_handler = custom_handler
+		self.method = method
 		self.path_param = path_param
 		self.decorator = decorator
 		self.on_remote_info = on_remote_info
@@ -76,10 +77,16 @@ class Endpoint:
 				kwargs = {}
 				kwargs.update(bottle_handler_args)
 				kwargs.update(params)
-				return self.custom_handler(self.route, filepath, **kwargs)
+				data = filepath
+				if self.method in ['POST', 'PUT']:
+					data = bottle.request.body.read()
+				return self.custom_handler(self.route, data, **kwargs)
 			bottle.response.content_type = self.content_type
 			return Path(filepath).read_bytes()
 
 		if self.decorator:
 			_actual = self.decorator(_actual)
-		bottle.route(self.route)(_actual)
+		if self.method:
+			bottle.route(self.route, method=self.method)(_actual)
+		else:
+			bottle.route(self.route)(_actual)

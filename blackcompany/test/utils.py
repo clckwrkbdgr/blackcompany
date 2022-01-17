@@ -71,6 +71,21 @@ class WebServerTestCase(fs_unittest.TestCase):
 		if with_info:
 			data = data, response.info()
 		return data
+	def _post(self, path, data):
+		request = urllib.request.Request(self._get_url(path), method='POST', data=data)
+		response = urllib.request.urlopen(request)
+		data = response.read()
+		return data
+	def _put(self, path, data):
+		request = urllib.request.Request(self._get_url(path), method='PUT', data=data)
+		response = urllib.request.urlopen(request)
+		data = response.read()
+		return data
+	def _delete(self, path):
+		request = urllib.request.Request(self._get_url(path), method='DELETE')
+		response = urllib.request.urlopen(request)
+		data = response.read()
+		return data
 	def tearDown(self):
 		StoppableServer.instance().shutdown()
 		self._service_thread.join()
