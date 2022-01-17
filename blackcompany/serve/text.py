@@ -3,8 +3,8 @@ try:
 except: # pragma: no cover
 	from pathlib import Path
 import bottle
-from ._base import mime
-from .. import util
+from . import mime
+from ..util import markdown as util_markdown
 
 @mime.Text.Html.custom()
 def html(route, filename):
@@ -16,7 +16,7 @@ def markdown(route, filename, template_file, encoding=None):
 	""" Serves markdown file, formatting it into given HTML Jinja template file.
 	Template should contain Jinja tags {{title}} and {{!content}}
 	"""
-	md = util.markdown.MarkdownFile(filename=filename, encoding=encoding, errors='replace' if encoding else None)
+	md = util_markdown.MarkdownFile(filename=filename, encoding=encoding, errors='replace' if encoding else None)
 	return bottle.template(Path(template_file).read_text(), title=md.get_title(), content=md.to_html())
 
 @mime.Text.Plain.custom()

@@ -4,7 +4,7 @@ try:
 except: # pragma: no cover
 	from pathlib import Path
 import bottle
-from ._base import mime
+from . import mime
 from .. import util
 
 @mime.Directory.Static.custom(path_param='<filename>')
