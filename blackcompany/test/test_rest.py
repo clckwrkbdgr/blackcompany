@@ -1,3 +1,5 @@
+import sys, socket
+import functools
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 try:
@@ -7,6 +9,18 @@ except: # pragma: no cover
 import bottle
 from . import utils
 from .. import serve
+
+def track_user_agent(func):
+	@functools.wraps(func)
+	def _actual(*args, **kwargs):
+		track_user_agent.history.append(bottle.request.get_header('User-Agent'))
+		return func(*args, **kwargs)
+	return _actual
+track_user_agent.history = []
+
+def track_remote_addr(remote_info):
+	track_remote_addr.history.append(remote_info)
+track_remote_addr.history = []
 
 class CounterAPI:
 	def __init__(self):
@@ -21,7 +35,7 @@ class CounterAPI:
 		self.counter = 0
 
 counter_api_entry = CounterAPI()
-serve.rest.entry('/api/counter', counter_api_entry)
+serve.rest.entry('/api/counter', counter_api_entry, decorator=track_user_agent, on_remote_info=track_remote_addr)
 
 class GetPostOnlyAPI:
 	def __init__(self):
@@ -63,3 +77,23 @@ class TestREST(utils.WebServerTestCase):
 	def should_post_new_state_on_limited_method_set(self):
 		self._post('/api/clipboard', b'hello world')
 		self.assertEqual(clip_api_entry.value, 'hello world')
+
+	def should_call_custom_decorator(self):
+		track_user_agent.history.clear()
+		data = self._get('/api/counter')
+		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
+
+		track_user_agent.history.clear()
+		data = self._post('/api/counter', b'100')
+		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
+	def should_track_remote_info(self):
+		current_ip = self.LOCALHOST
+		current_name = socket.getnameinfo((current_ip, 0), 0)[0]
+
+		track_remote_addr.history.clear()
+		data = self._get('/api/counter')
+		self.assertEqual(track_remote_addr.history, [serve.RemoteInfo(current_ip, current_name)])
+
+		track_remote_addr.history.clear()
+		data = self._post('/api/counter', b'100')
+		self.assertEqual(track_remote_addr.history, [serve.RemoteInfo(current_ip, current_name)])

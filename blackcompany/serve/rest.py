@@ -11,11 +11,11 @@ class MethodHandler:
 			return self.handler_func(data, **kwargs)
 		return self.handler_func(**kwargs)
 
-def entry(route, api_handler):
+def entry(route, api_handler, **serve_params):
 	methods_without_data = 'get delete'.split()
 	methods_with_data = 'post put'.split()
 	for method, with_data in itertools.chain(zip(methods_without_data, itertools.repeat(False)), zip(methods_with_data, itertools.repeat(True))):
 		if not hasattr(api_handler, method):
 			continue
-		endpoint = Endpoint(route, None, method=method.upper(), custom_handler=MethodHandler(getattr(api_handler, method), with_data=with_data))
+		endpoint = Endpoint(route, None, method=method.upper(), custom_handler=MethodHandler(getattr(api_handler, method), with_data=with_data), **serve_params)
 		endpoint.serve()
