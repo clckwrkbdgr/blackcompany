@@ -37,16 +37,14 @@ class CounterAPI:
 counter_api_entry = CounterAPI()
 serve.rest.entry('/api/counter', counter_api_entry, decorator=track_user_agent, on_remote_info=track_remote_addr)
 
-class GetPostOnlyAPI:
+@serve.rest.instance('/api/clipboard')
+class ClipboardAPI:
 	def __init__(self):
 		self.value = ''
 	def get(self):
 		return str(self.value)
 	def post(self, body):
 		self.value = body.decode()
-
-clip_api_entry = GetPostOnlyAPI()
-serve.rest.entry('/api/clipboard', clip_api_entry)
 
 class TestREST(utils.WebServerTestCase):
 	def setUp(self):
@@ -71,12 +69,12 @@ class TestREST(utils.WebServerTestCase):
 		self.assertEqual(new_data, b'0')
 
 	def should_get_state_on_limited_method_set(self):
-		clip_api_entry.value = 'foo bar'
+		ClipboardAPI._instance.value = 'foo bar'
 		data = self._get('/api/clipboard')
 		self.assertEqual(data, b'foo bar')
 	def should_post_new_state_on_limited_method_set(self):
 		self._post('/api/clipboard', b'hello world')
-		self.assertEqual(clip_api_entry.value, 'hello world')
+		self.assertEqual(ClipboardAPI._instance.value, 'hello world')
 
 	def should_call_custom_decorator(self):
 		track_user_agent.history.clear()

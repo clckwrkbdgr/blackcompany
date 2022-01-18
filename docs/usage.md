@@ -104,6 +104,16 @@ api_object = MyAPI()
 blackcompany.serve.rest.entry('/api/path', api_object)
 ```
 
+or, for convenience (if there assumed to be only one instance of the handler class):
+
+```python
+@blackcompany.serve.rest.entry('/api/path')
+class MyAPI:
+	def get(self):
+		...
+	...
+```
+
 Methods that are not implemented in handler object will be ignored when setting up route for the endpoint.
 Object may implement any kind of internal state. Except for four predefined methods, there is no further restriction on method names.
 Body passed to `PUT` and `POST` handlers will be a bytes object.
