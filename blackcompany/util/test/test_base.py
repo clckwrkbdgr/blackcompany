@@ -2,6 +2,7 @@ import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 import pickle
 from .. import _base
+from .. import gitHttpBackend # TODO separate file with unit tests.
 dotdict = _base.dotdict
 
 class TestDotDict(unittest.TestCase):
