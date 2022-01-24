@@ -118,6 +118,21 @@ Methods that are not implemented in handler object will be ignored when setting 
 Object may implement any kind of internal state. Except for four predefined methods, there is no further restriction on method names.
 Body passed to `PUT` and `POST` handlers will be a bytes object.
 
+Git
+---
+
+Git repo can be served using following endpoint:
+
+```python
+blackcompany.serve.vcs.git_repo('/gitrepo', '/path/to/repo/root')
+```
+
+```sh
+$ git clone http://localhost:8080/gitrepo .
+```
+
+**NOTE**: It is in very experimental state and some functions may not be working properly yet.
+
 Extra utils
 -----------
 

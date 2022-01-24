@@ -17,6 +17,9 @@ class Endpoint:
 	Route goes to bottle. It's up to handler how to process filepath.
 	Handler can also accept any number of keyword arguments, which will be passed to it as-is from corresponding serve().
 
+	Custom HTTP method can be specified. Default is 'GET'.
+	If read_data is specified and is True, request data is read from input stream (usually for POST or PUT methods). By default is True for POST and PUT method, but can be explicitly specified as False.
+
 	For parametrized routes pass last part of the path with param via path_param,
 	the actual value will be added to filepath argument in handler's call,
 	e.g.: route='/web/route' + path_param='<param_name>' => '/web/route/<param_name>', handler(route, filepath/<param_value>, ...)
@@ -32,6 +35,7 @@ class Endpoint:
 	def __init__(self,
 			route, filepath,
 			custom_handler=None, method=None,
+			read_data=None,
 			content_type=None,
 			path_param=None,
 			decorator=None, on_remote_info=None,
@@ -41,6 +45,9 @@ class Endpoint:
 		self.content_type = content_type
 		self.custom_handler = custom_handler
 		self.method = method
+		if read_data is None:
+			read_data = self.method in ['POST', 'PUT']
+		self.read_data = read_data
 		self.path_param = path_param
 		self.decorator = decorator
 		self.on_remote_info = on_remote_info
@@ -78,7 +85,7 @@ class Endpoint:
 				kwargs.update(bottle_handler_args)
 				kwargs.update(params)
 				data = filepath
-				if self.method in ['POST', 'PUT']:
+				if self.read_data:
 					data = bottle.request.body.read()
 				return self.custom_handler(self.route, data, **kwargs)
 			bottle.response.content_type = self.content_type
