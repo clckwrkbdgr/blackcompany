@@ -16,10 +16,10 @@ class GitHTTPBackend:
 	def _serve(self, path):
 		git_project_root = self.repo_root
 		git_dir = git_project_root/'.git'
-		if not git_dir.exists() and (git_project_root/'HEAD').exists(): # pragma: no cover -- TODO
+		if not git_dir.exists() and (git_project_root/'HEAD').exists():
 			git_dir = git_project_root
 		git_info = git_dir/'info'
-		if path == 'sparse-checkout' or (git_info/path).exists(): # pragma: no cover -- TODO
+		if path == 'sparse-checkout' or (git_info/path).exists():
 			return bottle.static_file(path, root=str(git_info))
 		webroot = self.route
 		environ = dict(bottle.request.environ)
