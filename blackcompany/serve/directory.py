@@ -1,8 +1,5 @@
 from collections import namedtuple
-try:
-	from pathlib2 import Path
-except: # pragma: no cover
-	from pathlib import Path
+from ..util._six import Path
 import bottle
 from . import mime
 from .. import util

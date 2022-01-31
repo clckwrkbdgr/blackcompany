@@ -3,10 +3,7 @@ unittest.defaultTestLoader.testMethodPrefix = 'should'
 import sys
 import socket
 import functools
-try:
-	from pathlib2 import Path
-except: # pragma: no cover
-	from pathlib import Path
+from ..util._six import Path
 import bottle
 
 from . import utils
@@ -43,12 +40,12 @@ class TestWebService(utils.WebServerTestCase):
 		data = self._get('/test')
 		self.assertEqual(data, b'Hello, world!')
 	def should_call_custom_decorator(self):
-		track_user_agent.history.clear()
+		del track_user_agent.history[:] # Py2 has no .clear()
 		data = self._get('/tracker')
 		self.assertEqual(data, b'Hello, world!\n')
 		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
 	def should_track_remote_info(self):
-		track_remote_addr.history.clear()
+		del track_remote_addr.history[:] # Py2 has no .clear()
 		data = self._get('/track_ip')
 		self.assertEqual(data, b'Hello, world!\n')
 		current_ip = self.LOCALHOST

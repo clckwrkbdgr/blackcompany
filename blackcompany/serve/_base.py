@@ -1,10 +1,7 @@
 import functools
 from collections import namedtuple
 import bottle
-try:
-	from pathlib2 import Path
-except: # pragma: no cover
-	from pathlib import Path
+from ..util._six import Path
 from ..util import net as netutil
 
 class Endpoint:

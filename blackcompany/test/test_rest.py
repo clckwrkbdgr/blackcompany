@@ -2,10 +2,7 @@ import sys, socket
 import functools
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
-try:
-	from pathlib2 import Path
-except: # pragma: no cover
-	from pathlib import Path
+from ..util._six import Path
 import bottle
 from . import utils
 from .. import serve

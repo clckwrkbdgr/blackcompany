@@ -1,4 +1,5 @@
 import functools
+from ..util import _six
 import socket
 from collections import namedtuple
 

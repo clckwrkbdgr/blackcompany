@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 from . import utils
@@ -24,7 +25,7 @@ class TestDirectoryHandlers(utils.WebServerTestCase):
 		self.fs.create_dir('/webroot/markdown')
 		self.fs.create_file('/webroot/markdown/markdown.md', contents='**Hello, world!**\n')
 		self.fs.create_file('/webroot/markdown/index.md', contents='# Index\n')
-		self.fs.create_file('/webroot/markdown/cp1251.md', contents='Привет, мир\n'.encode('cp1251'))
+		self.fs.create_file('/webroot/markdown/cp1251.md', contents=u'Привет, мир\n'.encode('cp1251'))
 	def should_serve_static_content(self):
 		data = self._get('/static/static.txt')
 		self.assertEqual(data, b'Hello, world!\n')

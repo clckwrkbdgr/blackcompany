@@ -1,8 +1,5 @@
 from __future__ import absolute_import
-try:
-	from pathlib2 import Path
-except ImportError: # pragma: no cover
-	from pathlib import Path
+from ._six import Path
 import markdown
 import markdown.extensions, markdown.preprocessors
 import yaml, json

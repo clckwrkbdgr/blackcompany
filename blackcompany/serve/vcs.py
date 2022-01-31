@@ -1,5 +1,5 @@
 from ._base import Endpoint
-from pathlib import Path
+from ..util._six import Path
 import bottle
 from ..util import gitHttpBackend
 

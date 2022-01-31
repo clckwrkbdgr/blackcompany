@@ -10,12 +10,6 @@ versions = sorted([
 		])
 version = '.'.join(versions[-1]) if versions else '0.0.0'
 
-py_version_requirements = []
-if sys.version_info[0] == 2:
-	py_version_requirements += [
-			'pathlib2',
-			]
-
 setuptools.setup(
 		name='blackcompany',
 		version=version,
@@ -32,5 +26,9 @@ setuptools.setup(
 			'markdown',
 			'jinja2',
 			'pyyaml',
-			] + py_version_requirements,
+
+			'pathlib2;python_version<="2.7"',
+			'backports.functools-lru-cache;python_version<="2.7"',
+			'backports.tempfile;python_version<="2.7"',
+			]
 		)

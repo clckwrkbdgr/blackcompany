@@ -1,14 +1,12 @@
+# -*- coding: utf-8 -*-
 import unittest
 unittest.defaultTestLoader.testMethodPrefix = 'should'
 import pyfakefs.fake_filesystem_unittest as fs_unittest
-try:
-	from pathlib2 import Path
-except ImportError: # pragma: no cover
-	from pathlib import Path
+from .._six import Path
 import json
 from .. import markdown
 
-WITHOUT_YAML = """# heading
+WITHOUT_YAML = u"""# heading
 
 **List**:
 
@@ -70,12 +68,12 @@ class TestMarkdownFile(fs_unittest.TestCase):
 		self.assertEqual(md.header, {})
 		self.assertEqual(md.text, WITHOUT_YAML)
 	def should_load_from_file_with_specific_encoding(self):
-		encoded_payload = 'Тест кодировок\n'
+		encoded_payload = u'Тест кодировок\n'
 		self.fs.create_file('/data/filename.md', contents=(WITH_YAML + encoded_payload).encode('cp1251'))
 		with self.assertRaises(UnicodeError):
 			markdown.MarkdownFile(filename='/data/filename.md', encoding='utf-8')
 		md = markdown.MarkdownFile(filename='/data/filename.md', encoding='utf-8', errors='replace')
-		self.assertEqual(md.text, WITHOUT_YAML + '���� ���������\n')
+		self.assertEqual(md.text, WITHOUT_YAML + u'���� ���������\n')
 		md = markdown.MarkdownFile(filename='/data/filename.md', encoding='cp1251')
 		self.assertEqual(md.text, WITHOUT_YAML + encoded_payload)
 	def should_convert_parsed_file_back_to_string(self):

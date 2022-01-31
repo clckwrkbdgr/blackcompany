@@ -1,5 +1,6 @@
 import threading
 from six.moves import urllib
+from ..util import _six
 import bottle
 import pyfakefs.fake_filesystem_unittest as fs_unittest
 from .. import _base
@@ -65,11 +66,12 @@ class WebServerTestCase(fs_unittest.TestCase):
 	def _get_url(self, path):
 		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
 	def _get(self, path, with_info=False):
-		request = urllib.request.Request(self._get_url(path))
+		url = self._get_url(path)
+		request = urllib.request.Request(url)
 		response = urllib.request.urlopen(request)
 		data = response.read()
 		if with_info:
-			data = data, response.info()
+			data = data, _six._wrap_urllib_request_response_info(response.info())
 		return data
 	def _post(self, path, data):
 		request = urllib.request.Request(self._get_url(path), method='POST', data=data)
