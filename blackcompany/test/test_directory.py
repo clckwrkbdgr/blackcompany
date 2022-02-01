@@ -38,7 +38,7 @@ class TestDirectoryHandlers(utils.WebServerTestCase):
 		data = self._get('/dir/markdown.md')
 		self.assertEqual(data, b'<html><head><title>markdown</title></head><body><p><strong>Hello, world!</strong></p></body></html>\n')
 		data = self._get('/dir/cp1251.md')
-		self.assertEqual(data, '<html><head><title>cp1251</title></head><body><p>Привет, мир</p></body></html>\n'.encode('utf-8'))
+		self.assertEqual(data, u'<html><head><title>cp1251</title></head><body><p>Привет, мир</p></body></html>\n'.encode('utf-8'))
 	def should_serve_directory_list_with_external_template(self):
 		data = self._get('/dir-external')
 		self.assertEqual(data, b'<html><head><title>Custom title</title></head><body><ul>\n<li><a href="/dir-external/cp1251.md">cp1251.md</a></li>\n<li><a href="/dir-external/index.md">index.md</a></li>\n<li><a href="/dir-external/markdown.md">markdown.md</a></li>\n</ul>\n</body></html>\n')

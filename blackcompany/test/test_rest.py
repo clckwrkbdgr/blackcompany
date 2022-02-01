@@ -74,21 +74,21 @@ class TestREST(utils.WebServerTestCase):
 		self.assertEqual(ClipboardAPI._instance.value, 'hello world')
 
 	def should_call_custom_decorator(self):
-		track_user_agent.history.clear()
+		del track_user_agent.history[:] # Py2 has no .clear()
 		data = self._get('/api/counter')
 		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
 
-		track_user_agent.history.clear()
+		del track_user_agent.history[:] # Py2 has no .clear()
 		data = self._post('/api/counter', b'100')
 		self.assertEqual(track_user_agent.history, ['Python-urllib/{0}.{1}'.format(*(sys.version_info[:2]))])
 	def should_track_remote_info(self):
 		current_ip = self.LOCALHOST
 		current_name = socket.getnameinfo((current_ip, 0), 0)[0]
 
-		track_remote_addr.history.clear()
+		del track_remote_addr.history[:] # Py2 has no .clear()
 		data = self._get('/api/counter')
 		self.assertEqual(track_remote_addr.history, [serve.RemoteInfo(current_ip, current_name)])
 
-		track_remote_addr.history.clear()
+		del track_remote_addr.history[:] # Py2 has no .clear()
 		data = self._post('/api/counter', b'100')
 		self.assertEqual(track_remote_addr.history, [serve.RemoteInfo(current_ip, current_name)])
