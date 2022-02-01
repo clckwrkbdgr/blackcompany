@@ -1,5 +1,5 @@
 import threading
-from six.moves import urllib
+import six
 from ..util import _six
 import bottle
 import pyfakefs.fake_filesystem_unittest as fs_unittest
@@ -44,6 +44,8 @@ class StoppableServer(bottle.ServerAdapter):
 			self.srv.shutdown()
 	@classmethod
 	def instance(cls):
+		while six.PY2 and not cls.instances: # pragma: no cover -- Py2 may reach here too soon.
+			continue
 		assert len(cls.instances) == 1, cls.instances
 		return cls.instances[0]
 
@@ -67,25 +69,25 @@ class WebServerTestCase(fs_unittest.TestCase):
 		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
 	def _get(self, path, with_info=False):
 		url = self._get_url(path)
-		request = urllib.request.Request(url)
-		response = urllib.request.urlopen(request)
+		request = _six.Request(url)
+		response = _six.urlopen(request)
 		data = response.read()
 		if with_info:
 			data = data, _six._wrap_urllib_request_response_info(response.info())
 		return data
 	def _post(self, path, data):
-		request = urllib.request.Request(self._get_url(path), method='POST', data=data)
-		response = urllib.request.urlopen(request)
+		request = _six.Request(self._get_url(path), method='POST', data=data)
+		response = _six.urlopen(request)
 		data = response.read()
 		return data
 	def _put(self, path, data):
-		request = urllib.request.Request(self._get_url(path), method='PUT', data=data)
-		response = urllib.request.urlopen(request)
+		request = _six.Request(self._get_url(path), method='PUT', data=data)
+		response = _six.urlopen(request)
 		data = response.read()
 		return data
 	def _delete(self, path):
-		request = urllib.request.Request(self._get_url(path), method='DELETE')
-		response = urllib.request.urlopen(request)
+		request = _six.Request(self._get_url(path), method='DELETE')
+		response = _six.urlopen(request)
 		data = response.read()
 		return data
 	def tearDown(self):

@@ -19,6 +19,22 @@ except AttributeError: # pragma: no cover
 	import backports.tempfile
 	tempfile.TemporaryDirectory = backports.tempfile.TemporaryDirectory
 
+try: # pragma: no cover
+	from urllib2 import Request as _Request, urlopen
+	class Request(_Request):
+		def __init__(self, *args, **kwargs):
+			self._method = None
+			if 'method' in kwargs:
+				self._method = kwargs['method'].upper()
+				del kwargs['method']
+			_Request.__init__(self, *args, **kwargs)
+		def get_method(self, *args, **kwargs):
+			if self._method is not None:
+				return self._method
+			return _Request.get_method(self, *args, **kwargs)
+except: # pragma: no cover
+	from urllib.request import Request, urlopen
+
 def _get_content_type_py2(self): # pragma: no cover
 	return self.type
 
