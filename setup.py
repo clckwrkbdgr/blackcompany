@@ -19,11 +19,15 @@ setuptools.setup(
 			'blackcompany.serve',
 			'blackcompany.util',
 			],
+		extras_require={
+			'concurrent' : [
+				'gevent',
+				],
+			},
 		install_requires=[
 			'six',
 			'click',
 			'bottle',
-			'gevent',
 			'markdown',
 			'jinja2',
 			'pyyaml',
