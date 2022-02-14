@@ -64,6 +64,7 @@ class WebServerTestCase(fs_unittest.TestCase):
 		self._service_thread = threading.Thread(target=_base.run, kwargs=dict(host=self.LOCALHOST, port=self._port, server_class=StoppableServer))
 		self._service_thread.daemon = True
 		self._service_thread.start()
+		self.addCleanup(self.shutdown)
 		StoppableServer.instance().wait_for_start()
 	def _get_url(self, path):
 		return 'http://{0}:{1}/{2}'.format(self.LOCALHOST, self._port, path.lstrip('/'))
@@ -90,6 +91,6 @@ class WebServerTestCase(fs_unittest.TestCase):
 		response = _six.urlopen(request)
 		data = response.read()
 		return data
-	def tearDown(self):
+	def shutdown(self):
 		StoppableServer.instance().shutdown()
 		self._service_thread.join()
