@@ -82,6 +82,25 @@ mime.Text.Markdown.serve('/docs', '/home/user/web/docs', path_param='filename', 
 
 See API help for more details.
 
+Server plugins
+--------------
+
+Any Python file may be loaded as a server plugin. All service definitions in these files (either blackcompany or plain bottle endpoints) will be loaded as usual and accessible at the server.
+
+```python
+# /path/to/plugin.py
+import bottle
+
+@bottle.route('/plugin-endpoint')
+def plugin_endpoint():
+	return ...
+```
+
+```python
+import blackcompany.serve
+blackcompany.serve.plugin.load('/path/to/plugin.py')
+```
+
 REST API
 --------
 
