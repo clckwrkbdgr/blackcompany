@@ -101,6 +101,13 @@ import blackcompany.serve
 blackcompany.serve.plugin.load('/path/to/plugin.py')
 ```
 
+It is also possible to discover and load plugins recursively:
+
+```python
+import blackcompany.serve
+blackcompany.serve.plugin.discover('/root/path/of/plugins/', pattern='plugin_*.py')
+```
+
 REST API
 --------
 

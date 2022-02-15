@@ -1,7 +1,9 @@
 import os
+from ..util._six import Path
 
 def load(plugin_path):
-	module_spec = plugin_path
+	""" Load specified Python file as web server plugin. """
+	module_spec = str(plugin_path)
 	module_filename = module_spec
 	module_name = os.path.basename(os.path.splitext(module_spec)[0])
 	try: # pragma: no cover
@@ -15,3 +17,10 @@ def load(plugin_path):
 	except ImportError: # pragma: no cover
 		import imp
 		module_instance = imp.load_source(module_name, module_filename)
+
+def discover(rootpath, pattern='*.py'):
+	""" Discover and load available plugins in given rootdir (recursively).
+	By default loads all found Python files, but wildcard pattern can be passed to include only specific files.
+	"""
+	for entry in Path(rootpath).glob('**/' + str(pattern)):
+		load(entry)

@@ -32,8 +32,10 @@ try: # pragma: no cover
 			if self._method is not None:
 				return self._method
 			return _Request.get_method(self, *args, **kwargs)
+	from urllib2 import HTTPError
 except: # pragma: no cover
 	from urllib.request import Request, urlopen
+	from urllib.error import HTTPError
 
 def _get_content_type_py2(self): # pragma: no cover
 	return self.type
