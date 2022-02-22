@@ -1,11 +1,18 @@
 import bottle
 
+_backend_options = {}
+def set_backend_option(option_name, value): # pragma: no cover -- TODO very implementation-specific
+	global _backend_options
+	_backend_options[option_name] = value
+
 def run(host='0.0.0.0', port=8080, debug=False, server_class=None):
 	""" Runs web server on given host/port.
 	"""
 	kwargs = {}
 	if server_class: # pragma: no cover
 		kwargs['server'] = server_class
+	global _backend_options
+	kwargs.update(_backend_options)
 	while True:
 		try:
 			return bottle.run(host=host, port=port,

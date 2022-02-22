@@ -21,6 +21,12 @@ import blackcompany.concurrent as blackcompany
 The line with `concurrent` should be the very first code line in the file.
 It uses `gevent` monkey-patch mechanism to provide concurrency for the stdlib modules.
 
+Backend-specific options (e.g. `server` for `bottle`) can be set globally if needed:
+
+```python
+blackcompany.set_backend_option('server', 'paste')
+```
+
 Running server
 --------------
 
