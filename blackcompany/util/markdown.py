@@ -71,7 +71,10 @@ class MarkdownFile(object):
 			return self.text
 		if isinstance(header, dict):
 			header = dict(header)
-		header = yaml.dump(header, default_flow_style=False)
+		try:
+			header = yaml.dump(header, default_flow_style=False, sort_keys=False)
+		except TypeError: # pragma: no cover -- dump_all() got an unexpected keyword argument 'sort_keys'
+			header = yaml.dump(header, default_flow_style=False)
 		if not header.endswith('\n'): # pragma: no cover -- no real case.
 			header += '\n'
 		return '---\n' + header + '---\n' + self.text
