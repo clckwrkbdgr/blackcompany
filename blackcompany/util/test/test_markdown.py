@@ -104,6 +104,10 @@ class TestMarkdownFile(fs_unittest.TestCase):
 
 		md = markdown.MarkdownFile(content='no heading')
 		self.assertIsNone(md.get_title())
+	def should_store_yaml_headers_in_unicode(self):
+		content = '---\nkey:"Привет, мир"\n...\n---\ncontent'
+		md = markdown.MarkdownFile(content=content)
+		self.assertEqual(content, str(md))
 
 RESULT_HTML = """\
 <h1>heading</h1>
