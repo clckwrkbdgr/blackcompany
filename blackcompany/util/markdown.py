@@ -106,6 +106,9 @@ class MarkdownFile(object):
 					'markdown.extensions.fenced_code',
 				]
 		if 'jinja_context_file' in self.header:
-			params = json.loads(Path(self.header['jinja_context_file']).read_text())
+			jinja_context_file = Path(self.header['jinja_context_file'])
+			if not jinja_context_file.is_absolute(): # pragma: no cover - TODO needs use-case and scenario. Forgot the original case.
+				jinja_context_file = Path(self.filename).parent/jinja_context_file
+			params = json.loads(jinja_context_file.read_text())
 			extensions.append(MarkdownJinja(params))
 		return markdown.markdown(self.text, extensions=extensions)
