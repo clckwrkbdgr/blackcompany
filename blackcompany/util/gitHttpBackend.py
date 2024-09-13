@@ -94,7 +94,10 @@ def build_cgi_environ(wsgi_environ, git_project_root, user=None): # pragma: no c
     cgi_environ = dict(wsgi_environ)
     for key, value in cgi_environ.items():  # NOT iteritems, due to "del"
         if not isinstance(value, str):
-            cgi_environ[key] = str(cgi_environ[key])
+            try:
+                cgi_environ[key] = str(cgi_environ[key])
+            except:
+                cgi_environ[key] = '<not a string>'
     cgi_environ['GIT_HTTP_EXPORT_ALL'] = '1'
     cgi_environ['GIT_PROJECT_ROOT'] = git_project_root
     if user:
