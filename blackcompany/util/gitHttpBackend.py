@@ -14,6 +14,10 @@ DEFAULT_MAX_HEADER_SIZE = 0X20000  # No header should ever be this large.
 # TODO: expose these sizes to API
 CRLF = b'\r\n'
 HEADER_END = CRLF * 2
+WSGI_INTERNAL_VARS = (
+        'route.handle', 'bottle.route', 'bottle.app', 'bottle.request',
+        'wsgi.file_wrapper', 'wsgi.input', 'wsgi.errors',
+        )
 
 
 def wsgi_to_git_http_backend(wsgi_environ,
@@ -91,13 +95,17 @@ def build_cgi_environ(wsgi_environ, git_project_root, user=None): # pragma: no c
     If REMOTE_USER is set in wsgi_environ, you should normally leave user
     alone.
     """
-    cgi_environ = dict(wsgi_environ)
-    for key, value in cgi_environ.items():  # NOT iteritems, due to "del"
+    cgi_environ = {}
+    for key in wsgi_environ.keys():
+        if key in WSGI_INTERNAL_VARS:
+            continue
+        value = wsgi_environ[key]
         if not isinstance(value, str):
             try:
-                cgi_environ[key] = str(cgi_environ[key])
+                value = str(wcgi_environ[key])
             except:
-                cgi_environ[key] = '<not a string>'
+                value = '<not a string>'
+        cgi_environ[key] = value
     cgi_environ['GIT_HTTP_EXPORT_ALL'] = '1'
     cgi_environ['GIT_PROJECT_ROOT'] = git_project_root
     if user:
