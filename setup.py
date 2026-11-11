@@ -13,7 +13,7 @@ version = '.'.join(versions[-1]) if versions else '0.0.0'
 setuptools.setup(
 		name='blackcompany',
 		version=version,
-		python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+		python_requires='>=3.5',
 		packages=[
 			'blackcompany',
 			'blackcompany.serve',
@@ -31,9 +31,5 @@ setuptools.setup(
 			'markdown',
 			'jinja2',
 			'pyyaml',
-
-			'pathlib2;python_version<="2.7"',
-			'backports.functools-lru-cache;python_version<="2.7"',
-			'backports.tempfile;python_version<="2.7"',
 			]
 		)
